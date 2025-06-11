@@ -16,10 +16,14 @@ def root():
 @app.get("/characters")
 def get_characters_count():
     count = repo.CharacterCount(DB_PATH)
-    return {"Count": count[0]}
+    return {"Count": count}
 
 @app.get("/characters/{character_id}", response_model=Character)
 def get_character(character_id: int):
+    count = repo.CharacterCount(DB_PATH)
+    if character_id <=0 or character_id > count:
+        raise HTTPException(status_code=404, detail=f"Character id range: 1 and {count}")
+
     character = repo.CharacterByID(DB_PATH,character_id)
 
     if character is None:
@@ -30,7 +34,7 @@ def get_character(character_id: int):
         "Name": character["Name"],
         "Species": character["Species"],
         "Likes": character["Likes"],
-        "Quote": character["Quote"],
+        "Quote": character["Quote"] ,
         "Image": character["Image"]
     }
 

@@ -20,7 +20,7 @@ def CreateTable(dbPath: str):
         CREATE TABLE IF NOT EXISTS characters (
             Id INTEGER PRIMARY KEY,
             Name TEXT NOT NULL,
-            Species TEXT,
+            Species TEXT NOT NULL,
             Likes TEXT,
             Quote TEXT,
             Image TEXT NOT NULL    
