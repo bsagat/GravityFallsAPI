@@ -1,19 +1,20 @@
 from dotenv import load_dotenv
 import pandas as pd
-import sqlite3
+import psycopg2
 import os
-
 
 load_dotenv()
 EXCEL_PATH = os.getenv("EXCEL_PATH")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-def Connect(path: str):
-    conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
+
+def Connect():
+    conn = psycopg2.connect(DATABASE_URL)
     return conn
 
-def CreateTable(dbPath: str):
-    conn = Connect(dbPath)
+
+def CreateTable():
+    conn = Connect()
     cursor = conn.cursor()
 
     cursor.execute('''
@@ -30,28 +31,34 @@ def CreateTable(dbPath: str):
     conn.commit()
     conn.close()
 
-def LoadExcelData(dbPath: str, fileName: str):
-    conn = Connect(dbPath)
+
+def LoadExcelData():
+    conn = Connect()
     cursor = conn.cursor()
 
     cursor.execute("DELETE FROM characters")
 
-    file = pd.read_excel(fileName)
+    file = pd.read_excel(EXCEL_PATH)
 
     for _, row in file.iterrows():
         cursor.execute('''
             INSERT INTO characters (Id, Name, Species, Likes, Quote, Image)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s)
         ''', (row['ID'], row['Name'], row['Species'], row['Likes'], row['Quote'], row['Image']))
 
     conn.commit()
     conn.close()
 
-def NukeCharacters(dbPath: str):
-    conn = Connect(dbPath)
+
+def NukeCharacters():
+    conn = Connect()
     cursor = conn.cursor()
 
-    cursor.execute("DROP TABLE characters")
+    cursor.execute("DROP TABLE IF EXISTS characters")
 
     conn.commit()
     conn.close()
+
+NukeCharacters()
+CreateTable()
+LoadExcelData()

@@ -7,7 +7,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
-DB_PATH = os.getenv("DB_PATH")
+DB_PATH = os.getenv("DATABASE_URL")
+
+if not DB_PATH:
+    raise RuntimeError("DB_PATH is not set in .env file")
 
 @app.get("/")
 def root():
@@ -15,26 +18,31 @@ def root():
 
 @app.get("/characters")
 def get_characters_count():
-    count = repo.CharacterCount(DB_PATH)
-    return {"Count": count}
+    try:
+        count = repo.CharacterCount()
+        return {"Count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/characters/{character_id}", response_model=Character)
 def get_character(character_id: int):
-    count = repo.CharacterCount(DB_PATH)
-    if character_id <=0 or character_id > count:
-        raise HTTPException(status_code=404, detail=f"Character id range: 1 and {count}")
+    try:
+        count = repo.CharacterCount()
+        if character_id <= 0 or character_id > count:
+            raise HTTPException(status_code=404, detail=f"Character ID must be between 1 and {count}")
+        
+        character = repo.CharacterByID(character_id)
 
-    character = repo.CharacterByID(DB_PATH,character_id)
+        if character is None:
+            raise HTTPException(status_code=404, detail="Character not found")
 
-    if character is None:
-        raise HTTPException(status_code=404, detail="Character not found")
-
-    return {
-        "Id": character["Id"],
-        "Name": character["Name"],
-        "Species": character["Species"],
-        "Likes": character["Likes"],
-        "Quote": character["Quote"] ,
-        "Image": character["Image"]
-    }
-
+        return {
+            "Id": character[0],
+            "Name": character[1],
+            "Species": character[2],
+            "Likes": character[3],
+            "Quote": character[4],
+            "Image": character[5]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

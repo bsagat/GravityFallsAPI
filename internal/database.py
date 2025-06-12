@@ -1,23 +1,23 @@
 from internal.init import Connect
-import sqlite3
 
-def CharacterByID(dbPath: str,id: int):
-    with Connect(dbPath) as conn:
+def CharacterByID(id: int):
+    with Connect() as conn:
         cursor = conn.cursor()
-        data = cursor.execute('''
+        cursor.execute('''
             SELECT 
-                Id, Name, Species, COALESCE(Likes,'') as Likes, COALESCE(Quote, '') as Quote, Image
+                Id, Name, Species, COALESCE(Likes, '') as Likes, COALESCE(Quote, '') as Quote, Image
             FROM 
                 characters 
             WHERE 
-                Id = ?
-        ''',(id,)).fetchone()
-
+                Id = %s
+        ''', (id,))
+        data = cursor.fetchone()
     return data
-    
-def CharacterCount(dbPath: str) ->int :
-    with Connect(dbPath) as conn:
-        cursor = conn.cursor()
-        count = cursor.execute("SELECT COUNT(*) FROM characters").fetchone()[0]
 
+
+def CharacterCount() -> int:
+    with Connect() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM characters")
+        count = cursor.fetchone()[0]
     return count
