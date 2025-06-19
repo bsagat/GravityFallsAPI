@@ -1,12 +1,13 @@
 from dotenv import load_dotenv
+from dotenv import load_dotenv
 import pandas as pd
+import argparse
 import psycopg2
 import os
 
 load_dotenv()
 EXCEL_PATH = os.getenv("EXCEL_PATH")
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 
 def Connect():
     conn = psycopg2.connect(DATABASE_URL)
